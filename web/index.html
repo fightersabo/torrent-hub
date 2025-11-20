@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Torrent Hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        color-scheme: dark;
+        --accent: #7c5dff;
+        --accent-2: #4adede;
+        --bg: radial-gradient(circle at 20% 20%, rgba(124, 93, 255, 0.18), transparent 25%),
+          radial-gradient(circle at 80% 0%, rgba(74, 222, 222, 0.18), transparent 25%),
+          #0c0f1a;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: "Inter", system-ui, -apple-system, sans-serif;
+        background: var(--bg);
+        color: #f6f7fb;
+        min-height: 100vh;
+      }
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 24px clamp(18px, 3vw, 32px);
+        position: sticky;
+        top: 0;
+        background: linear-gradient(180deg, rgba(12, 15, 26, 0.9), rgba(12, 15, 26, 0.6));
+        backdrop-filter: blur(10px);
+        z-index: 10;
+      }
+      .logo {
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        font-size: 20px;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .logo span {
+        display: grid;
+        place-items: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 12px;
+        background: linear-gradient(145deg, var(--accent), var(--accent-2));
+        box-shadow: 0 10px 35px rgba(124, 93, 255, 0.35);
+        color: #0b0e18;
+        font-weight: 800;
+      }
+      main {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 12px clamp(18px, 3vw, 32px) 48px;
+        display: grid;
+        gap: 16px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 16px;
+      }
+      .card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 18px;
+        padding: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+      }
+      .card h2 {
+        margin: 0 0 8px;
+        font-size: 18px;
+        font-weight: 700;
+      }
+      form {
+        display: grid;
+        gap: 12px;
+      }
+      label {
+        font-weight: 600;
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.75);
+      }
+      input[type="text"],
+      input[type="file"] {
+        width: 100%;
+        padding: 12px 14px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.04);
+        color: #f6f7fb;
+        outline: none;
+      }
+      input[type="text"]:focus {
+        border-color: rgba(124, 93, 255, 0.6);
+        box-shadow: 0 0 0 3px rgba(124, 93, 255, 0.15);
+      }
+      button {
+        background: linear-gradient(135deg, var(--accent), var(--accent-2));
+        border: none;
+        color: #0c0f1a;
+        border-radius: 12px;
+        padding: 12px 14px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        box-shadow: 0 15px 35px rgba(124, 93, 255, 0.4);
+      }
+      button:hover {
+        transform: translateY(-1px);
+      }
+      button.secondary {
+        background: rgba(255, 255, 255, 0.08);
+        color: #f6f7fb;
+        box-shadow: none;
+      }
+      .actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .torrent-list {
+        display: grid;
+        gap: 12px;
+      }
+      .torrent-card {
+        padding: 16px;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        display: grid;
+        gap: 10px;
+      }
+      .torrent-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+      }
+      .pill {
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.06);
+        font-size: 12px;
+        text-transform: capitalize;
+      }
+      .progress {
+        position: relative;
+        width: 100%;
+        height: 10px;
+        background: rgba(255, 255, 255, 0.06);
+        border-radius: 999px;
+        overflow: hidden;
+      }
+      .progress span {
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 0;
+        background: linear-gradient(135deg, var(--accent), var(--accent-2));
+        border-radius: 999px;
+      }
+      .meta {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 13px;
+      }
+      .meta strong {
+        color: #fff;
+      }
+      .empty {
+        text-align: center;
+        color: rgba(255, 255, 255, 0.6);
+        padding: 20px 0;
+      }
+      .video-modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.65);
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        z-index: 20;
+      }
+      .video-shell {
+        background: #0f1220;
+        border-radius: 18px;
+        width: min(1100px, 96vw);
+        padding: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 20px 70px rgba(0, 0, 0, 0.5);
+      }
+      video {
+        width: 100%;
+        border-radius: 12px;
+        background: #000;
+      }
+      .subtitle-select {
+        margin: 10px 0 0;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="logo"><span>TH</span> Torrent Hub</div>
+      <div class="actions">
+        <button class="secondary" id="refresh">Refresh</button>
+      </div>
+    </header>
+    <main>
+      <div class="grid">
+        <div class="card">
+          <h2>Add Magnet</h2>
+          <form id="magnet-form">
+            <label for="magnet">Magnet link</label>
+            <input type="text" id="magnet" placeholder="magnet:?xt=urn:btih..." required />
+            <button type="submit">Add to Transmission</button>
+          </form>
+        </div>
+        <div class="card">
+          <h2>Upload .torrent</h2>
+          <form id="upload-form">
+            <label for="torrent">Torrent file</label>
+            <input type="file" id="torrent" accept=".torrent" required />
+            <button type="submit">Upload &amp; Start</button>
+          </form>
+        </div>
+      </div>
+
+      <section class="card">
+        <h2>Active &amp; Completed Torrents</h2>
+        <div id="torrent-list" class="torrent-list"></div>
+      </section>
+    </main>
+
+    <div id="video-modal" class="video-modal" hidden>
+      <div class="video-shell">
+        <div class="actions" style="justify-content: flex-end; margin-bottom: 8px">
+          <button class="secondary" id="close-modal">Close</button>
+        </div>
+        <video id="player" controls crossorigin="anonymous"></video>
+        <div class="subtitle-select">
+          <label for="subtitle">Subtitles:</label>
+          <select id="subtitle"></select>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const list = document.getElementById("torrent-list");
+      const refreshBtn = document.getElementById("refresh");
+      const modal = document.getElementById("video-modal");
+      const player = document.getElementById("player");
+      const subtitleSelect = document.getElementById("subtitle");
+
+      const LANG_LABELS = {
+        en: "English",
+        ar: "Arabic",
+        unknown: "Unknown",
+      };
+
+      async function fetchJSON(url, options = {}) {
+        const res = await fetch(url, options);
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(text || res.statusText);
+        }
+        return res.json();
+      }
+
+      function formatBytes(bytes) {
+        if (!bytes && bytes !== 0) return "?";
+        const units = ["B", "KB", "MB", "GB", "TB"];
+        let i = 0;
+        let val = bytes;
+        while (val >= 1024 && i < units.length - 1) {
+          val /= 1024;
+          i++;
+        }
+        return `${val.toFixed(1)} ${units[i]}`;
+      }
+
+      function formatSpeed(speed) {
+        return `${formatBytes(speed)}/s`;
+      }
+
+      function renderSubtitles(subtitles, selectEl) {
+        selectEl.innerHTML = "";
+        const noneOption = document.createElement("option");
+        noneOption.value = "";
+        noneOption.textContent = "None";
+        selectEl.appendChild(noneOption);
+
+        subtitles.forEach((s) => {
+          const option = document.createElement("option");
+          option.value = s.url;
+          option.textContent = `${LANG_LABELS[s.language] || "Subtitle"}`;
+          selectEl.appendChild(option);
+        });
+      }
+
+      function openPlayer(video, subtitles) {
+        modal.hidden = false;
+        player.innerHTML = "";
+        const source = document.createElement("source");
+        source.src = video.streamUrl;
+        source.type = videoMime(video.path);
+        player.appendChild(source);
+        renderSubtitles(subtitles, subtitleSelect);
+        if (subtitles.length) {
+          subtitleSelect.value = subtitles[0].url;
+          addSubtitleTrack(subtitles[0]);
+        } else {
+          subtitleSelect.value = "";
+        }
+        player.load();
+        player.play();
+      }
+
+      function videoMime(path) {
+        const ext = path?.split(".").pop()?.toLowerCase();
+        const map = {
+          mp4: "video/mp4",
+          mkv: "video/x-matroska",
+          webm: "video/webm",
+          mov: "video/quicktime",
+          avi: "video/x-msvideo",
+        };
+        return map[ext] || "video/mp4";
+      }
+
+      subtitleSelect.addEventListener("change", () => {
+        const url = subtitleSelect.value;
+        const selected = url ? { url, language: subtitleSelect.selectedOptions[0]?.textContent.toLowerCase() } : null;
+        addSubtitleTrack(selected);
+      });
+
+      function addSubtitleTrack(subtitle) {
+        player.querySelectorAll("track").forEach((track) => track.remove());
+        if (subtitle && subtitle.url) {
+          const track = document.createElement("track");
+          track.kind = "subtitles";
+          track.src = subtitle.url;
+          track.srclang = subtitle.language || "en";
+          track.default = true;
+          track.label = subtitle.language ? subtitle.language.toUpperCase() : "Subtitle";
+          player.appendChild(track);
+        }
+        player.load();
+        player.play();
+      }
+
+      document.getElementById("close-modal").addEventListener("click", () => {
+        player.pause();
+        modal.hidden = true;
+      });
+
+      modal.addEventListener("click", (e) => {
+        if (e.target === modal) {
+          player.pause();
+          modal.hidden = true;
+        }
+      });
+
+      async function loadTorrents() {
+        list.innerHTML = "<div class='empty'>Loading...</div>";
+        try {
+          const { torrents } = await fetchJSON("/torrents");
+          if (!torrents.length) {
+            list.innerHTML = "<div class='empty'>No torrents yet. Add one to get started.</div>";
+            return;
+          }
+          list.innerHTML = "";
+          torrents.forEach((t) => list.appendChild(renderTorrent(t)));
+        } catch (err) {
+          list.innerHTML = `<div class='empty'>${err.message}</div>`;
+        }
+      }
+
+      function renderTorrent(torrent) {
+        const el = document.createElement("div");
+        el.className = "torrent-card";
+        const percent = torrent.progress || 0;
+        el.innerHTML = `
+          <div class="torrent-header">
+            <div>
+              <div style="font-weight:700;font-size:15px">${torrent.name}</div>
+              <div style="opacity:.7;font-size:13px">${formatBytes(torrent.totalSize || 0)}</div>
+            </div>
+            <div class="pill">${torrent.status}</div>
+          </div>
+          <div class="progress"><span style="width:${percent}%"></span></div>
+          <div class="meta">
+            <span><strong>${percent}%</strong> complete</span>
+            <span>⬇️ ${formatSpeed(torrent.downloadRate || 0)}</span>
+            <span>⬆️ ${formatSpeed(torrent.uploadRate || 0)}</span>
+            <span>ETA: ${torrent.eta}</span>
+          </div>
+          <div class="actions" data-actions></div>
+        `;
+        const actions = el.querySelector("[data-actions]");
+        if (torrent.files?.videos?.length) {
+          const downloadBtn = document.createElement("button");
+          downloadBtn.textContent = "Download";
+          downloadBtn.onclick = () => window.open(torrent.files.videos[0].downloadUrl, "_blank");
+          actions.appendChild(downloadBtn);
+
+          const playBtn = document.createElement("button");
+          playBtn.className = "secondary";
+          playBtn.textContent = "Play";
+          playBtn.onclick = () => openPlayer(torrent.files.videos[0], torrent.files.subtitles || []);
+          actions.appendChild(playBtn);
+        } else {
+          const hint = document.createElement("div");
+          hint.textContent = "Waiting for video files...";
+          hint.style.opacity = 0.7;
+          actions.appendChild(hint);
+        }
+        return el;
+      }
+
+      document.getElementById("magnet-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const magnet = document.getElementById("magnet").value.trim();
+        if (!magnet) return;
+        try {
+          await fetchJSON("/torrents/magnet", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ magnet }),
+          });
+          document.getElementById("magnet").value = "";
+          loadTorrents();
+        } catch (err) {
+          alert(err.message);
+        }
+      });
+
+      document.getElementById("upload-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const fileInput = document.getElementById("torrent");
+        if (!fileInput.files.length) return;
+        const formData = new FormData();
+        formData.append("torrent", fileInput.files[0]);
+        try {
+          await fetch("/torrents/upload", { method: "POST", body: formData });
+          fileInput.value = "";
+          loadTorrents();
+        } catch (err) {
+          alert(err.message);
+        }
+      });
+
+      refreshBtn.addEventListener("click", loadTorrents);
+      setInterval(loadTorrents, 5000);
+      loadTorrents();
+    </script>
+  </body>
+</html>
